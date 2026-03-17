@@ -2,12 +2,12 @@
 
 <h2>Table of contents</h2>
 
-- [What is VM hardening](#what-is-vm-hardening)
-- [Set up additional protection](#set-up-additional-protection)
+- [About the VM hardening](#about-the-vm-hardening)
+- [Harden the VM](#harden-the-vm)
   - [Set up `ufw` firewall (REMOTE)](#set-up-ufw-firewall-remote)
   - [Set up `fail2ban` (REMOTE)](#set-up-fail2ban-remote)
 
-## What is VM hardening
+## About the VM hardening
 
 VM hardening is the process of securing a [virtual machine](./vm.md#what-is-a-vm) by reducing its attack surface.
 
@@ -15,22 +15,21 @@ Docs:
 
 - [CIS Benchmarks](https://www.cisecurity.org/cis-benchmarks)
 
-Steps:
-
-1. [Set up the VM access](./vm-access.md#about-the-vm-access)
-2. [Set up additional protection](#set-up-additional-protection)
-
-## Set up additional protection
+## Harden the VM
 
 Complete these steps:
 
 <!-- no toc -->
-1. [Set up `ufw` firewall (REMOTE)](#set-up-ufw-firewall-remote)
-2. [Set up `fail2ban` (REMOTE)](#set-up-fail2ban-remote)
+1. [Connect to the VM as the user `<user>` (LOCAL)](./vm-access.md#connect-to-the-vm-as-the-user-user-local).
+2. [Set up `ufw` firewall (REMOTE)](#set-up-ufw-firewall-remote).
+3. [Set up `fail2ban` (REMOTE)](#set-up-fail2ban-remote).
 
 ### Set up `ufw` firewall (REMOTE)
 
-`ufw` (`Uncomplicated Firewall`) is a simple firewall for [`Linux`](./linux.md#what-is-linux). By default, `ufw` denies all incoming traffic. The steps below create exceptions for the ports your VM needs.
+> `ufw` (`Uncomplicated Firewall`) is a simple firewall for [`Linux`](./linux.md#what-is-linux).
+>
+> By default, `ufw` denies all incoming traffic.
+> The steps below create exceptions for the ports your VM needs.
 
 1. To allow [`SSH`](./ssh.md#what-is-ssh),
 
@@ -41,10 +40,11 @@ Complete these steps:
    ```
 
    > 🟪 **Important**
+   >
    > Always allow `SSH` (port 22) before enabling `ufw`.
    > Otherwise, you will lock yourself out of your VM.
 
-3. To allow the [LMS API port](./lms-api.md#lms-api-port),
+2. To allow the [LMS API port](./lms-api.md#lms-api-port),
 
    [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
@@ -54,7 +54,7 @@ Complete these steps:
 
    Replace the placeholder [`<lms-api-port>`](./lms-api.md#lms-api-port-placeholder).
 
-4. To enable the firewall,
+3. To enable the [firewall](./computer-networks.md#firewall),
 
    [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
@@ -62,7 +62,7 @@ Complete these steps:
    sudo ufw enable
    ```
 
-5. To check the status,
+4. To check the status,
 
    [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
@@ -72,7 +72,11 @@ Complete these steps:
 
 ### Set up `fail2ban` (REMOTE)
 
-`fail2ban` blocks IP addresses that make too many failed login attempts. Even after password authentication is disabled, `fail2ban` remains useful: it rate-limits repeated [`SSH`](./ssh.md#what-is-ssh) connection attempts and can be extended to protect other services.
+`fail2ban` blocks IP addresses that make too many failed login attempts.
+Even after password authentication is disabled, `fail2ban` remains useful:
+
+- It rate-limits repeated [`SSH`](./ssh.md#what-is-ssh) connection attempts.
+- It can be extended to protect other services.
 
 1. To update the package list,
 
