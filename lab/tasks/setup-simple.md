@@ -7,35 +7,36 @@
     - [1.1.3. Enable issues](#113-enable-issues)
     - [1.1.4. Add a classmate as a collaborator](#114-add-a-classmate-as-a-collaborator)
     - [1.1.5. Protect your `main` branch](#115-protect-your-main-branch)
-  - [1.2. Clone your fork and set up the environment](#12-clone-your-fork-and-set-up-the-environment)
-  - [1.3. Start the services locally](#13-start-the-services-locally)
-  - [1.4. Populate the database](#14-populate-the-database)
-  - [1.5. Verify the local deployment](#15-verify-the-local-deployment)
-  - [1.6. Deploy to your VM](#16-deploy-to-your-vm)
-  - [1.7. Set up LLM access (Qwen Code API)](#17-set-up-llm-access-qwen-code-api)
-  - [1.8. Coding agent](#18-coding-agent)
+  - [1.2. Clean up the previous lab (LOCAL)](#12-clean-up-the-previous-lab-local)
+  - [1.3. Clone your fork and open it in `VS Code` (LOCAL)](#13-clone-your-fork-and-open-it-in-vs-code-local)
+  - [1.4. Set up the environment](#14-set-up-the-environment)
+  - [1.5. Set up a coding agent](#15-set-up-a-coding-agent)
+  - [1.6. Deploy the LMS API](#16-deploy-the-lms-api)
+  - [1.7. Deploy the `Qwen Code` API](#17-deploy-the-qwen-code-api)
+  - [1.8. Set up the agent environment](#18-set-up-the-agent-environment)
 
 ## 1. Required steps
 
 > [!NOTE]
-> This lab builds on the same tools and setup from previous labs.
-> If you completed Labs 4–5, most tools are already installed.
+> This lab builds on the same tools and setup from Lab 5.
+>
+> If you completed Lab 5, most tools are already installed.
+>
 > The main changes are: a new repo, local deployment, and setting up LLM access.
-
-> [!NOTE]
-> This lab needs your university email and GitHub alias in the Autochecker bot <https://t.me/auchebot>. If you haven't registered, do so now. If you want to change something, contact your TA.
 
 ### 1.1. Set up your fork
 
 #### 1.1.1. Fork the course instructors' repo
 
-1. Fork the [lab's repo](https://github.com/inno-se-toolkit/se-toolkit-lab-6).
+1. [Fork](../../wiki/github.md#fork-a-repo) the [course instructors' repo](https://github.com/inno-se-toolkit/se-toolkit-lab-6).
 
 We refer to your fork as `fork` and to the original repo as `upstream`.
 
 #### 1.1.2. Go to your fork
 
-1. Go to your fork, it should look like `https://github.com/<your-github-username>/se-toolkit-lab-6`.
+1. [Go to your fork](../../wiki/github.md#go-to-your-fork).
+
+   It should look like `https://github.com/<your-github-username>/se-toolkit-lab-6`.
 
 #### 1.1.3. Enable issues
 
@@ -48,278 +49,141 @@ We refer to your fork as `fork` and to the original repo as `upstream`.
 
 #### 1.1.5. Protect your `main` branch
 
-1. [Protect a branch](../../wiki/github.md#protect-a-branch).
+1. [Protect the `main` branch](../../wiki/github.md#protect-a-branch).
 
-### 1.2. Clone your fork and set up the environment
+### 1.2. Clean up the previous lab (LOCAL)
 
-1. Clone your fork to your local machine:
+1. [Open in `VS Code` the directory](../../wiki/vs-code.md#open-the-directory) where you store lab repositories.
+
+2. To stop Lab 5 services that might be still running,
+
+   [run in the `VS Code Terminal`](../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
+
+   ```terminal
+   cd se-toolkit-lab-5
+   docker compose --env-file .env.docker.secret down
+   cd ..
+   ```
+
+### 1.3. Clone your fork and open it in `VS Code` (LOCAL)
+
+1. To clone your fork,
+
+   [run in the `VS Code Terminal`](../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    git clone https://github.com/<your-github-username>/se-toolkit-lab-6
    ```
 
-2. Open the forked repo in `VS Code`.
+   Replace the placeholder [`<your-github-username>`](../../wiki/github.md#your-github-username).
 
-3. Go to `VS Code Terminal`, [check that the current directory is `se-toolkit-lab-6`](../../wiki/shell.md#check-the-current-directory-is-directory-name), and install `Python` dependencies:
+2. [Open in `VS Code` the directory](../../wiki/vs-code.md#open-the-file-or-the-directory-using-code):
+   `se-toolkit-lab-6`.
+
+3. [Check that the current directory is `se-toolkit-lab-6`](../../wiki/shell.md#check-the-current-directory-is-directory-name).
+
+### 1.4. Set up the environment
+
+1. To install `Python` dependencies,
+
+   [run in the `VS Code Terminal`](../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    uv sync --dev
    ```
 
-4. Create the environment file:
+2. To create the [environment file](../../wiki/environments.md#env-file) for [`Docker`](../../wiki/docker.md#what-is-docker),
+
+   [run in the `VS Code Terminal`](../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    cp .env.docker.example .env.docker.secret
    ```
 
-5. Configure the autochecker API credentials.
+3. [Open in `VS Code` the file](../../wiki/vs-code.md#open-the-file): [`.env.docker.secret`](../../wiki/dotenv-docker-secret.md#what-is-envdockersecret)
 
-   The ETL pipeline fetches data from the autochecker dashboard API.
-   Open `.env.docker.secret` and set:
-
-   ```text
-   AUTOCHECKER_EMAIL=<your-email>@innopolis.university
-   AUTOCHECKER_PASSWORD=<your-github-username><your-telegram-alias>
-   ```
-
-   Example: if your GitHub username is `johndoe` and your Telegram alias is `jdoe`, the password is `johndoejdoe`.
-
-   > [!IMPORTANT]
-   > The credentials must match your autochecker bot registration.
-
-6. Set `LMS_API_KEY` — this is the **backend API key** that protects your LMS endpoints (used for `Authorization: Bearer` in Swagger and the frontend). It is **not** the LLM key — that comes later in Task 1.
+4. Set the [`Autochecker` API credentials](../../wiki/autochecker-api.md#autochecker-api-credentials) in [`.env.docker.secret`](../../wiki/dotenv-docker-secret.md#what-is-envdockersecret):
 
    ```text
-   LMS_API_KEY=set-it-to-something-and-remember-it
+   AUTOCHECKER_API_LOGIN=<autochecker-api-login>
+   AUTOCHECKER_API_PASSWORD=<autochecker-api-password>
    ```
 
-### 1.3. Start the services locally
+   Replace the placeholders:
 
-1. (`Windows`/`macOS`) Make sure [Docker Desktop](../../wiki/docker.md#start-docker) is running.
+   - [`<autochecker-api-login>`](../../wiki/autochecker-api.md#autochecker-api-login-placeholder)
+   - [`<autochecker-api-password>`](../../wiki/autochecker-api.md#autochecker-api-password-placeholder)
 
-2. Start the services in the background:
+5. Set the [LMS API key](../../wiki/lms-api.md#lms-api-key) in `.env.docker.secret`:
 
-   ```terminal
-   docker compose --env-file .env.docker.secret up --build -d
+   ```text
+   LMS_API_KEY=<lms-api-key>
    ```
 
-3. Check that the containers are running:
+   Replace the placeholder [`<lms-api-key>`](../../wiki/lms-api.md#lms-api-key-placeholder).
 
-   ```terminal
-   docker compose --env-file .env.docker.secret ps --format "table {{.Service}}\t{{.Status}}"
-   ```
+### 1.5. Set up a coding agent
 
-   You should see all four services running:
+> [!NOTE]
+> You should already have a [coding agent](../../wiki/coding-agents.md#what-is-a-coding-agent) from Lab 5.
 
-   ```terminal
-   SERVICE    STATUS
-   app        Up 50 seconds
-   caddy      Up 49 seconds
-   pgadmin    Up 50 seconds
-   postgres   Up 55 seconds (healthy)
-   ```
+1. If you don't have an agent, [set one up](../../wiki/coding-agents.md#choose-and-use-a-coding-agent).
 
-> <h3>Troubleshooting</h3>
+### 1.6. Deploy the LMS API
+
+> [!NOTE]
+> The [`Autochecker`](../../wiki/autochecker.md#what-is-the-autochecker) tests your agent against your **deployed backend on your VM**.
 >
-> **Port conflict (`port is already allocated`).**
+> You need to deploy the services there.
+
+1. [Deploy the LMS API on your VM](../../wiki/lms-api-deployment.md#deploy-the-lms-api-on-the-vm).
+
+### 1.7. Deploy the `Qwen Code` API
+
+> Your agent needs an [LLM](../../wiki/llm.md) to answer questions.
 >
-> Labs 5 and 6 use the same ports (42001, 42002, 42004). If you have Lab 5 containers running, stop them first:
->
-> ```terminal
-> cd ../se-toolkit-lab-5
-> docker compose --env-file .env.docker.secret down
-> cd ../se-toolkit-lab-6
-> ```
->
-> If that doesn't help, [clean up `Docker`](../../wiki/docker.md#clean-up-docker), then run the `docker compose up` command again.
->
-> **Containers exit immediately.**
->
-> Rebuild all containers from scratch:
->
-> ```terminal
-> docker compose --env-file .env.docker.secret down -v
-> docker compose --env-file .env.docker.secret up --build -d
-> ```
->
-> **Hangs at `=> [caddy builder 4/7] RUN npm install -g pnpm`**
->
-> or
->
-> **DNS resolution errors (`getaddrinfo EAI_AGAIN`).**
->
-> If you see DNS errors like `getaddrinfo EAI_AGAIN registry.npmjs.org`, `Docker` can't resolve domain names. This is a university network DNS issue. Add Google DNS to `Docker`:
->
-> ```terminal
-> sudo tee /etc/docker/daemon.json <<'EOF'
-> {
->   "dns": ["8.8.8.8", "8.8.4.4"]
-> }
-> EOF
-> sudo systemctl restart docker
-> ```
->
-> Then run the `docker compose up` command again.
+> [`Qwen Code`](../../wiki/qwen-code.md#what-is-qwen-code) provides **1000 free requests per day** and works from Russia — no VPN or credit card needed.
 
-### 1.4. Populate the database
+1. [Deploy the `Qwen Code` API on your VM](../../wiki/qwen-code-api-deployment.md#deploy-the-qwen-code-api-remote).
 
-The database starts empty. You need to run the ETL pipeline to populate it with data from the autochecker API.
+2. [Check that the `Qwen Code` API is accessible](../../wiki/qwen-code-api-deployment.md#check-that-the-qwen-code-api-is-accessible) on your local machine.
 
-1. Open in a browser: `http://localhost:42002/docs`
+### 1.8. Set up the agent environment
 
-   You should see the Swagger UI page.
+1. To create the agent [environment file](../../wiki/environments.md#env-file),
 
-2. [Authorize in Swagger](../../wiki/swagger.md#authorize-in-swagger-ui) with the `LMS_API_KEY` you set in `.env.docker.secret`.
-
-3. Run the ETL sync by calling `POST /pipeline/sync` in Swagger UI.
-
-   You should get a response showing the number of items and logs loaded:
-
-   ```json
-   {
-     "items_loaded": 120,
-     "logs_loaded": 5000
-   }
-   ```
-
-   > [!NOTE]
-   > The exact numbers depend on how much data the autochecker API has.
-   > As long as both numbers are greater than 0, the sync worked.
-
-4. Verify data by calling `GET /items/`.
-
-   You should get a non-empty array of items.
-
-### 1.5. Verify the local deployment
-
-1. Open `http://localhost:42002/docs` in a browser.
-
-   You should see the Swagger UI with all endpoints.
-
-2. Open `http://localhost:42002/` in a browser.
-
-   You should see the frontend. Enter your API key to connect.
-
-3. Switch to the **Dashboard** tab.
-
-   You should see charts with analytics data (submissions timeline, score distribution, group performance, task pass rates).
-
-> [!IMPORTANT]
-> If the dashboard shows no data or errors, make sure:
->
-> - The ETL sync completed successfully (step 1.5)
-> - You entered the correct API key in the frontend
-> - Try selecting a different lab in the dropdown (e.g., `lab-04`)
-
-### 1.6. Deploy to your VM
-
-The autochecker tests your agent against your **deployed backend on your VM**. You need to deploy the same services there.
-
-1. [Connect to the VM](../../wiki/vm-access.md#connect-to-the-vm).
-
-2. Clone your fork on the VM:
-
-   ```terminal
-   git clone https://github.com/<your-github-username>/se-toolkit-lab-6 ~/se-toolkit-lab-6
-   ```
-
-3. Create the environment file:
-
-   ```terminal
-   cd ~/se-toolkit-lab-6
-   cp .env.docker.example .env.docker.secret
-   ```
-
-4. Edit `.env.docker.secret` — set the same credentials as in your local file:
-
-   ```terminal
-   nano .env.docker.secret
-   ```
-
-   Set `AUTOCHECKER_EMAIL`, `AUTOCHECKER_PASSWORD`, and `LMS_API_KEY` (use the same values as locally).
-
-5. Start the services:
-
-   ```terminal
-   docker compose --env-file .env.docker.secret up --build -d
-   ```
-
-   > <h3>Troubleshooting</h3>
-   >
-   > The same troubleshooting advices as when [starting the services locally](#13-start-the-services-locally).
-
-6. Populate the database:
-
-   ```terminal
-   curl -X POST http://localhost:42002/pipeline/sync \
-     -H "Authorization: Bearer <your-LMS_API_KEY>" \
-     -H "Content-Type: application/json" \
-     -d '{}'
-   ```
-
-7. Verify the deployment:
-
-   ```terminal
-   curl -s http://localhost:42002/items/ -H "Authorization: Bearer <your-LMS_API_KEY>" | jq .
-   ```
-
-   You should see a JSON array of items.
-
-> [!IMPORTANT]
-> Keep the services running on your VM. The autochecker will query your backend during evaluation.
-
-### 1.7. Set up LLM access (Qwen Code API)
-
-Your agent needs an LLM to answer questions. [Qwen Code](../../wiki/qwen-code.md#what-is-qwen-code) provides **1000 free requests per day** and works from Russia — no VPN or credit card needed.
-
-1. [Set up the Qwen Code API on your VM](../../wiki/qwen-code-api.md#set-up-the-qwen-code-api-remote).
-
-   After completing the setup, you will have the Qwen API running on your VM at `http://localhost:<qwen-api-port>/v1`.
-
-2. On your **local machine**, create the agent environment file:
+   [run in the `VS Code Terminal`](../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    cp .env.agent.example .env.agent.secret
    ```
 
-3. Edit `.env.agent.secret`:
+2. Set the values in [`.env.agent.secret`](../../wiki/dotenv-agent-secret.md#about-envagentsecret):
 
    ```text
-   LLM_API_KEY=<your-QWEN_API_KEY>
-   LLM_API_BASE=http://<your-vm-ip-address>:<qwen-api-port>/v1
-   LLM_MODEL=qwen3-coder-plus
+   LLM_API_KEY=<qwen-code-api-key>
+   LLM_API_BASE_URL=<qwen-code-api-base-url>
+   LLM_API_MODEL=coder-model
    ```
 
-   Replace `<your-QWEN_API_KEY>`, `<your-vm-ip-address>`, and `<qwen-api-port>` with your values.
+   Replace the placeholders:
 
-4. Verify the connection from your local machine:
+   - [`<qwen-code-api-key>`](../../wiki/qwen-code-api.md#qwen-code-api-key)
+   - [`<qwen-code-api-base-url>`](../../wiki/qwen-code-api.md#qwen-code-api-base-url-placeholder)
 
-   ```terminal
-   curl -s http://<your-vm-ip-address>:<qwen-api-port>/v1/chat/completions \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer <your-QWEN_API_KEY>" \
-     -d '{"model":"qwen3-coder-plus","messages":[{"role":"user","content":"What is 2+2?"}]}' \
-     | jq .
+3. (Alternative) Use `OpenRouter`
+
+   If you prefer [OpenRouter](https://openrouter.ai), register and get an API key.
+
+   Then set in [`.env.agent.secret`](../../wiki/dotenv-agent-secret.md#about-envagentsecret):
+
+   ```text
+   LLM_API_KEY=<your-openrouter-key>
+   LLM_API_BASE_URL=https://openrouter.ai/api/v1
+   LLM_API_MODEL=meta-llama/llama-3.3-70b-instruct:free
    ```
 
-<details><summary><b>Alternative: OpenRouter (click to open)</b></summary>
+---
 
-If you prefer [OpenRouter](https://openrouter.ai), register and get an API key. Then set in `.env.agent.secret`:
-
-```text
-LLM_API_KEY=<your-openrouter-key>
-LLM_API_BASE=https://openrouter.ai/api/v1
-LLM_MODEL=meta-llama/llama-3.3-70b-instruct:free
-```
-
-</details>
-
-### 1.8. Coding agent
-
-> [!NOTE]
-> You should already have a coding agent from Lab 5.
-> If not, [set one up](../../wiki/coding-agents.md#choose-and-use-a-coding-agent).
-
-----
-
-You're all set. Now go to the [tasks](../../README.md#tasks).
+You're all set.
+Now go to the [tasks](../../README.md#tasks).
