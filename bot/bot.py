@@ -9,7 +9,7 @@ import asyncio
 import argparse
 from telegram.ext import Application, CommandHandler
 
-from handlers import (
+from handlers.commands import (
     handle_start, handle_help, handle_health,
     handle_labs, handle_scores, handle_stats, handle_unknown
 )
