@@ -1,6 +1,7 @@
 """Intent router for natural language queries using LLM."""
 
 import sys
+import json
 from typing import Any, Optional
 
 from services.llm_client import llm_client, TOOL_DEFINITIONS, SYSTEM_PROMPT
@@ -118,6 +119,8 @@ async def route_intent(message: str, debug: bool = True) -> str:
 
 async def execute_tool(name: str, args: dict[str, Any]) -> Any:
     """Execute a tool by name with given arguments."""
+    from utils import normalize_lab_id
+    
     try:
         if name == "get_items":
             items = await lms_client.get_items()
@@ -128,55 +131,42 @@ async def execute_tool(name: str, args: dict[str, Any]) -> Any:
             return {"learners": learners, "count": len(learners)}
         
         elif name == "get_scores":
-            lab = _normalize_lab_id(args.get("lab", ""))
+            lab = normalize_lab_id(args.get("lab", ""))
             scores = await lms_client.get_scores(lab)
             return {"lab": lab, "scores": scores}
         
         elif name == "get_pass_rates":
-            lab = _normalize_lab_id(args.get("lab", ""))
+            lab = normalize_lab_id(args.get("lab", ""))
             rates = await lms_client.get_pass_rates(lab)
             return {"lab": lab, "pass_rates": rates}
         
         elif name == "get_timeline":
-            lab = _normalize_lab_id(args.get("lab", ""))
+            lab = normalize_lab_id(args.get("lab", ""))
             timeline = await lms_client.get_timeline(lab)
             return {"lab": lab, "timeline": timeline}
         
         elif name == "get_groups":
-            lab = _normalize_lab_id(args.get("lab", ""))
+            lab = normalize_lab_id(args.get("lab", ""))
             groups = await lms_client.get_groups(lab)
             return {"lab": lab, "groups": groups}
         
         elif name == "get_top_learners":
-            lab = _normalize_lab_id(args.get("lab", ""))
+            lab = normalize_lab_id(args.get("lab", ""))
             limit = args.get("limit", 5)
             learners = await lms_client.get_top_learners(lab, limit)
             return {"lab": lab, "top_learners": learners, "limit": limit}
         
         elif name == "get_completion_rate":
-            lab = _normalize_lab_id(args.get("lab", ""))
+            lab = normalize_lab_id(args.get("lab", ""))
             rate = await lms_client.get_completion_rate(lab)
             return {"lab": lab, "completion_rate": rate}
         
         elif name == "trigger_sync":
             result = await lms_client.sync_pipeline()
             return {"sync_result": result}
-        
+
         else:
             return {"error": f"Unknown tool: {name}"}
-    
+
     except Exception as e:
         return {"error": str(e)}
-
-
-def _normalize_lab_id(lab_input: str) -> str:
-    """Normalize lab identifier to just the number."""
-    import re
-    if not lab_input:
-        return ""
-    
-    # Extract number from input like "lab-04", "lab-4", "4", "Lab 04"
-    match = re.search(r'(\d+)', str(lab_input))
-    if match:
-        return match.group(1)
-    return str(lab_input)
