@@ -164,7 +164,8 @@ def run_telegram_bot() -> None:
     app.add_handler(CommandHandler("stats", lambda u, c: u.message.reply_text(handle_stats())))
     
     # Register callback query handler for inline buttons
-    app.add_handler(MessageHandler(filters.StatusUpdate.CALLBACK_QUERY, handle_callback_query))
+    from telegram.ext import CallbackQueryHandler
+    app.add_handler(CallbackQueryHandler(handle_callback_query))
     
     # Register message handler for plain text (intent routing)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
