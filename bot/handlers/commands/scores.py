@@ -1,18 +1,9 @@
 """Handler for /scores command"""
 
-import re
 from typing import Optional
 import httpx
+from utils import normalize_lab_id
 from services.lms_api import lms_client
-
-
-def extract_lab_number(lab_input: str) -> str:
-    """Extract lab number from input like 'lab-04', 'lab-4', '4', 'Lab 04'."""
-    # Try to find a number in the input
-    match = re.search(r'(\d+)', lab_input)
-    if match:
-        return match.group(1)
-    return lab_input
 
 
 async def handle_scores(lab: Optional[str] = None) -> str:
@@ -26,7 +17,7 @@ async def handle_scores(lab: Optional[str] = None) -> str:
         labs = [i for i in items if i.get("type") == "lab"]
         
         # Extract lab number for matching
-        lab_num = extract_lab_number(lab)
+        lab_num = normalize_lab_id(lab)
         
         # Find lab by ID or title match
         lab_info = None
