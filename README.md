@@ -91,3 +91,86 @@ By the end of this lab, you should be able to say:
 2. [Backend Integration](./lab/tasks/required/task-2.md) — P0: slash commands + real data
 3. [Intent-Based Natural Language Routing](./lab/tasks/required/task-3.md) — P1: LLM tool use
 4. [Containerize and Document](./lab/tasks/required/task-4.md) — P3: containerize + deploy
+
+## Deploy
+
+### Prerequisites
+
+- Docker and Docker Compose installed on VM
+- `.env.docker.secret` filled with required values (see below)
+- Qwen Code API proxy running (`~/qwen-code-oai-proxy`)
+- Telegram bot token from @BotFather
+
+### Environment variables
+
+Create `.env.docker.secret` (copy from `.env.docker.example`) with these bot-specific values:
+
+```bash
+# Bot configuration
+BOT_TOKEN=your-telegram-bot-token-from-botfather
+
+# Backend connection (inside Docker, use service name not localhost)
+BOT_LMS_API_URL=http://backend:8000
+LMS_API_KEY=my-secret-api-key
+
+# LLM connection (qwen proxy is on host, use host.docker.internal)
+LLM_API_KEY=tiktoken
+BOT_LLM_API_BASE_URL=http://host.docker.internal:42005/v1
+LLM_API_MODEL=qwen3-coder-plus
+```
+
+### Deploy commands
+
+```bash
+# Go to project directory
+cd ~/se-toolkit-lab-7
+
+# Pull latest changes
+git pull
+
+# Start all services (backend, postgres, bot, etc.)
+docker compose --env-file .env.docker.secret up --build -d
+
+# Check all containers are running
+docker compose --env-file .env.docker.secret ps
+
+# Check bot logs for startup errors
+docker compose --env-file .env.docker.secret logs bot --tail 30
+```
+
+### Verify deployment
+
+```bash
+# Backend healthy?
+curl -sf http://localhost:42002/docs && echo "Backend: OK"
+
+# Bot running?
+docker compose --env-file .env.docker.secret ps bot
+
+# Test in Telegram - send your bot:
+# /start
+# /health
+# "what labs are available?"
+```
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| Bot container restarting | Check logs: `docker compose logs bot` |
+| `/health` fails | Ensure `BOT_LMS_API_URL=http://backend:8000` |
+| LLM queries fail | Ensure `BOT_LLM_API_BASE_URL` uses `host.docker.internal` |
+| "BOT_TOKEN is required" | Add `BOT_TOKEN` to `.env.docker.secret` |
+
+### Stop / Restart
+
+```bash
+# Stop all services
+docker compose --env-file .env.docker.secret down
+
+# Restart just the bot
+docker compose --env-file .env.docker.secret restart bot
+
+# Rebuild and restart (after code changes)
+docker compose --env-file .env.docker.secret up --build -d
+```
